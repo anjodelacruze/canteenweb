@@ -47,17 +47,20 @@ main { max-width:1000px;margin:auto;padding:15px; }
 }
 .grid {
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:8px;
 }
 .food {
   border:1px solid #ddd;
-  border-radius:12px;
-  padding:13px;
+  border-radius:10px;
+  padding:8px;
   background:white;
 }
-.food .emoji { font-size:35px; }
-.price { color:var(--green);font-weight:bold;font-size:18px; }
+.food h3 { font-size:13px;margin:4px 0 2px; }
+.food p { font-size:12px;margin:2px 0; }
+.food button { padding:7px 8px;font-size:12px; }
+.food .emoji { font-size:22px; }
+.price { color:var(--green);font-weight:bold;font-size:14px; }
 input,select {
   width:100%;
   padding:12px;
@@ -214,7 +217,27 @@ const defaultMenu = [
  {id:4,name:"Fried Chicken",price:60,canteen:"Canteen 2",available:true,emoji:"🍗"},
  {id:5,name:"Pancit Bihon",price:30,canteen:"Canteen 2",available:true,emoji:"🍜"},
  {id:6,name:"Tapsilog",price:65,canteen:"Canteen 2",available:true,emoji:"🍳"},
- {id:7,name:"Dinuguan",price:60,canteen:"Canteen 1",available:false,emoji:"🍜"}
+ {id:7,name:"Adobong Baboy",price:65,canteen:"Canteen 1",available:true,emoji:"🥘"},
+ {id:8,name:"Adobong Manok",price:60,canteen:"Canteen 1",available:true,emoji:"🍗"},
+ {id:9,name:"Menudo",price:55,canteen:"Canteen 1",available:true,emoji:"🍲"},
+ {id:10,name:"Afritada",price:60,canteen:"Canteen 1",available:true,emoji:"🍛"},
+ {id:11,name:"Caldereta",price:75,canteen:"Canteen 1",available:true,emoji:"🍖"},
+ {id:12,name:"Mechado",price:70,canteen:"Canteen 1",available:true,emoji:"🥩"},
+ {id:13,name:"Bicol Express",price:65,canteen:"Canteen 2",available:true,emoji:"🌶️"},
+ {id:14,name:"Sisig",price:70,canteen:"Canteen 2",available:true,emoji:"🍳"},
+ {id:15,name:"Dinuguan",price:55,canteen:"Canteen 2",available:true,emoji:"🍲"},
+ {id:16,name:"Pork Steak / Bistek Tagalog",price:60,canteen:"Canteen 2",available:true,emoji:"🥩"},
+ {id:17,name:"Lechon Kawali",price:75,canteen:"Canteen 2",available:true,emoji:"🥓"},
+ {id:18,name:"Tokwa't Baboy",price:50,canteen:"Canteen 2",available:true,emoji:"🍢"},
+ {id:19,name:"Lumpiang Shanghai",price:40,canteen:"Canteen 1",available:true,emoji:"🥟"},
+ {id:20,name:"Chicken Curry",price:65,canteen:"Canteen 1",available:true,emoji:"🍛"},
+ {id:21,name:"Tinola",price:55,canteen:"Canteen 2",available:true,emoji:"🍲"},
+ {id:22,name:"Pork Binagoongan",price:60,canteen:"Canteen 2",available:true,emoji:"🍲"},
+ {id:23,name:"Igado",price:60,canteen:"Canteen 1",available:true,emoji:"🍢"},
+ {id:24,name:"Coke",price:20,canteen:"Canteen 1",available:true,emoji:"🥤"},
+ {id:25,name:"Royal",price:20,canteen:"Canteen 1",available:true,emoji:"🥤"},
+ {id:26,name:"Sprite",price:20,canteen:"Canteen 1",available:true,emoji:"🥤"},
+ {id:27,name:"Saging",price:10,canteen:"Canteen 1",available:true,emoji:"🍌"}
 ];
 
 let menu = JSON.parse(localStorage.getItem(MENU_KEY) || "null") || defaultMenu;
