@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canteen Order Hub mplace</title>
+
+<style>
+:root {
+  --green:#176b4a;
+  --light:#e8f4ed;
+  --bg:#f5f8f5;
+  --red:#b93838;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:#18231f;
+  font:15px Arial,sans-serif;
+}
+header {
+  background:linear-gradient(120deg,#124c37,#23865d);
+  color:white;
+  padding:20px;
+}
+.brand { font-size:23px;font-weight:bold; }
+nav { display:flex;gap:8px;margin-top:15px;flex-wrap:wrap; }
+button {
+  border:0;
+  border-radius:9px;
+  padding:11px 14px;
+  background:var(--green);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+nav button { background:#ffffff25; }
+nav button.active { background:white;color:var(--green); }
+main { max-width:1000px;margin:auto;padding:15px; }
+.panel {
+  background:white;
+  border:1px solid #e3eae5;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:15px;
+}
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:8px;
+}
+.food {
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:8px;
+  background:white;
+}
+.food h3 { font-size:13px;margin:4px 0 2px; }
+.food p { font-size:12px;margin:2px 0; }
+.food button { padding:7px 8px;font-size:12px; }
+.food .emoji { font-size:22px; }
+.price { color:var(--green);font-weight:bold;font-size:14px; }
+input,select {
+  width:100%;
+  padding:12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+}
+label { display:block;margin:12px 0 5px;font-weight:bold; }
+.hidden { display:none!important; }
+.tabs { display:flex;gap:7px;flex-wrap:wrap;margin:15px 0; }
+.tabs button { background:#e8f4ed;color:#176b4a; }
+.tabs button.active { background:#176b4a;color:white; }
+.item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding:12px 0;
+  border-bottom:1px solid #ddd;
+}
+.order {
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:13px;
+  margin-top:12px;
+}
+.status {
+  display:inline-block;
+  padding:4px 9px;
+  border-radius:20px;
+  background:#fff0d5;
+  font-size:12px;
+}
+.status.ok { background:#dff3e5;color:green; }
+.danger { background:#ffeaea;color:red; }
+.secondary { background:#e8f4ed;color:#176b4a; }
+@media(max-width:500px) {
+  main { padding:10px; }
+  .panel { padding:13px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">🍽️ Canteen Order Hub Mplace</div>
+  <p>Order Online • Canteen Menu</p>
+
+  <nav>
+    <button onclick="showPage('shop')">Menu</button>
+    <button onclick="showPage('cart')">🛒 Cart (<span id="cartCount">0</span>)</button>
+    <button onclick="showPage('admin')">Admin</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- CUSTOMER MENU -->
+<section id="shopPage">
+  <div class="panel">
+    <h2>Today's Menu</h2>
+    <div class="tabs" id="canteenTabs"></div>
+    <div class="grid" id="menuGrid"></div>
+  </div>
+</section>
+
+<!-- CART -->
+<section id="cartPage" class="hidden">
+  <div class="panel">
+    <h2>🛒 My Cart</h2>
+    <div id="cartItems"></div>
+    <h3 id="cartTotal">Total: ₱0</h3>
+    <button onclick="showPage('checkout')">Checkout</button>
+  </div>
+</section>
+
+<!-- CHECKOUT -->
+<section id="checkoutPage" class="hidden">
+  <div class="panel">
+    <h2>Customer Information</h2>
+
+    <label>Full Name</label>
+    <input id="custName" placeholder="Your name">
+
+    <label>Cellphone Number</label>
+    <input id="custPhone" type="tel" placeholder="09XXXXXXXXX">
+
+    <label>Payment Method</label>
+    <select id="payment">
+      <option>Cash</option>
+      <option>GCash</option>
+    </select>
+
+    <label>Note</label>
+    <input id="custNote" placeholder="Optional">
+
+    <div id="checkoutSummary"></div>
+
+    <button onclick="placeOrder()">SUBMIT ORDER</button>
+    <button class="secondary" onclick="showPage('cart')">Back</button>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="adminPage" class="hidden">
+
+  <div id="adminLogin" class="panel">
+    <h2>🔐 Admin Login</h2>
+    <label>Admin PIN</label>
+    <input type="password" id="adminPin" placeholder="Enter PIN">
+    <button onclick="loginAdmin()">Login</button>
+  </div>
+
+  <div id="adminDash" class="panel hidden">
+    <h2>Admin Dashboard</h2>
+
+    <div class="tabs">
+      <button onclick="adminTab('orders')">Orders</button>
+      <button onclick="adminTab('manage')">Manage Menu</button>
+    </div>
+
+    <div id="ordersAdmin"></div>
+    <div id="manageAdmin" class="hidden"></div>
+
+    <button class="secondary" onclick="logoutAdmin()">Logout</button>
+  </div>
+
+</section>
+
+<section id="successPage" class="hidden">
+  <div class="panel">
+    <h2>✅ Order Submitted!</h2>
+    <p>Hintayin ang confirmation ng admin.</p>
+    <button onclick="showPage('shop')">Back to Menu</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+
+// ADMIN SETTINGS
+const ADMIN_PIN = "1234";
+
+// STORAGE
+const MENU_KEY = "canteen_menu";
+const ORDER_KEY = "canteen_orders";
+
+const defaultMenu = [
+ {id:1,name:"Chicken Adobo",price:55,canteen:"Canteen 1",available:true,emoji:"🍗"},
+ {id:2,name:"Pork Menudo",price:50,canteen:"Canteen 1",available:true,emoji:"🍲"},
+ {id:3,name:"Tortang Talong",price:35,canteen:"Canteen 1",available:true,emoji:"🍆"},
+ {id:4,name:"Fried Chicken",price:60,canteen:"Canteen 2",available:true,emoji:"🍗"},
+ {id:5,name:"Pancit Bihon",price:30,canteen:"Canteen 2",available:true,emoji:"🍜"},
+ {id:6,name:"Tapsilog",price:65,canteen:"Canteen 2",available:true,emoji:"🍳"},
+ {id:7,name:"Adobong Baboy",price:65,canteen:"Canteen 1",available:true,emoji:"🥘"},
+ {id:8,name:"Adobong Manok",price:60,canteen:"Canteen 1",available:true,emoji:"🍗"},
+ {id:9,name:"Menudo",price:55,canteen:"Canteen 1",available:true,emoji:"🍲"},
+ {id:10,name:"Afritada",price:60,canteen:"Canteen 1",available:true,emoji:"🍛"},
+ {id:11,name:"Caldereta",price:75,canteen:"Canteen 1",available:true,emoji:"🍖"},
+ {id:12,name:"Mechado",price:70,canteen:"Canteen 1",available:true,emoji:"🥩"},
+ {id:13,name:"Bicol Express",price:65,canteen:"Canteen 2",available:true,emoji:"🌶️"},
+ {id:14,name:"Sisig",price:70,canteen:"Canteen 2",available:true,emoji:"🍳"},
+ {id:15,name:"Dinuguan",price:55,canteen:"Canteen 2",available:true,emoji:"🍲"},
+ {id:16,name:"Pork Steak / Bistek Tagalog",price:60,canteen:"Canteen 2",available:true,emoji:"🥩"},
+ {id:17,name:"Lechon Kawali",price:75,canteen:"Canteen 2",available:true,emoji:"🥓"},
+ {id:18,name:"Tokwa't Baboy",price:50,canteen:"Canteen 2",available:true,emoji:"🍢"},
+ {id:19,name:"Lumpiang Shanghai",price:40,canteen:"Canteen 1",available:true,emoji:"🥟"},
+ {id:20,name:"Chicken Curry",price:65,canteen:"Canteen 1",available:true,emoji:"🍛"},
+ {id:21,name:"Tinola",price:55,canteen:"Canteen 2",available:true,emoji:"🍲"},
+ {id:22,name:"Pork Binagoongan",price:60,canteen:"Canteen 2",available:true,emoji:"🍲"},
+ {id:23,name:"Igado",price:60,canteen:"Canteen 1",available:true,emoji:"🍢"},
+ {id:24,name:"Coke",price:20,canteen:"Canteen 1",available:true,emoji:"🥤"},
+ {id:25,name:"Royal",price:20,canteen:"Canteen 1",available:true,emoji:"🥤"},
+ {id:26,name:"Sprite",price:20,canteen:"Canteen 1",available:true,emoji:"🥤"},
+ {id:27,name:"Saging",price:10,canteen:"Canteen 1",available:true,emoji:"🍌"}
+];
+
+let menu = JSON.parse(localStorage.getItem(MENU_KEY) || "null") || defaultMenu;
+let orders = JSON.parse(localStorage.getItem(ORDER_KEY) || "[]");
+let cart = [];
+let currentCanteen = "All";
+let isAdmin = false;
+
+function saveData() {
+ localStorage.setItem(MENU_KEY,JSON.stringify(menu));
+ localStorage.setItem(ORDER_KEY,JSON.stringify(orders));
+}
+
+function peso(amount) {
+ return "₱" + Number(amount).toFixed(2);
+}
+
+function showPage(page) {
+ ["shop","cart","checkout","admin","success"].forEach(p => {
+   document.getElementById(p+"Page").classList.toggle("hidden",p!==page);
+ });
+
+ if(page==="shop") renderMenu();
+ if(page==="cart") renderCart();
+ if(page==="checkout") renderCheckout();
+ if(page==="admin") renderAdmin();
+
+ window.scrollTo(0,0);
+}
+
+// MENU
+function setCanteen(name) {
+ currentCanteen = name;
+ renderMenu();
+}
+
+function renderMenu() {
+ let names = ["All",...new Set(menu.map(x=>x.canteen))];
+
+ document.getElementById("canteenTabs").innerHTML =
+ names.map(n=>`
+   <button class="${n===currentCanteen?'active':''}"
+   onclick="setCanteen(this.dataset.name)"
+   data-name="${n}">
+   ${n==="All"?"All Canteens":n}
+   </button>
+ `).join("");
+
+ let items = menu.filter(x =>
+   currentCanteen==="All" || x.canteen===currentCanteen
+ );
+
+ document.getElementById("menuGrid").innerHTML =
+ items.map(x=>`
+  <div class="food">
+   <div class="emoji">${x.emoji||"🍽️"}</div>
+   <h3>${x.name}</h3>
+   <p>${x.canteen}</p>
+   <p class="price">${peso(x.price)}</p>
+   <p>${x.available?"Available":"Sold Out"}</p>
+   <button ${x.available?"":"disabled"}
+   onclick="addCart(${x.id})">
+   Add to Cart
+   </button>
+  </div>
+ `).join("");
+}
+
+// CART
+function addCart(id) {
+ let item = menu.find(x=>x.id===id);
+ if(!item || !item.available) return;
+
+ let existing = cart.find(x=>x.id===id);
+
+ if(existing) existing.qty++;
+ else cart.push({id,qty:1});
+
+ updateCount();
+ alert("Added to cart!");
+}
+
+function updateCount() {
+ document.getElementById("cartCount").innerText =
+ cart.reduce((a,x)=>a+x.qty,0);
+}
+
+function renderCart() {
+ let total = 0;
+
+ document.getElementById("cartItems").innerHTML =
+ cart.map(c=>{
+   let item = menu.find(x=>x.id===c.id);
+   if(!item) return "";
+
+   total += item.price*c.qty;
+
+   return `
+    <div class="item">
+     <div>
+      <b>${item.name}</b><br>
+      ${peso(item.price)} × ${c.qty}
+     </div>
+     <div>
+      <button onclick="changeQty(${item.id},-1)">−</button>
+      <button onclick="changeQty(${item.id},1)">+</button>
+      <button class="danger" onclick="removeCart(${item.id})">×</button>
+     </div>
+    </div>
+   `;
+ }).join("");
+
+ document.getElementById("cartTotal").innerText =
+ "Total: "+peso(total);
+}
+
+function changeQty(id,amount) {
+ let item = cart.find(x=>x.id===id);
+ if(!item) return;
+
+ item.qty += amount;
+
+ if(item.qty<=0) removeCart(id);
+
+ renderCart();
+ updateCount();
+}
+
+function removeCart(id) {
+ cart = cart.filter(x=>x.id!==id);
+ renderCart();
+ updateCount();
+}
+
+// CHECKOUT
+function renderCheckout() {
+ let total = cart.reduce((sum,c)=>{
+   let item = menu.find(x=>x.id===c.id);
+   return sum+(item?item.price*c.qty:0);
+ },0);
+
+ document.getElementById("checkoutSummary").innerHTML =
+ "<h3>Total: "+peso(total)+"</h3>";
+}
+
+function placeOrder() {
+ let name = document.getElementById("custName").value.trim();
+ let phone = document.getElementById("custPhone").value.trim();
+
+ if(!name || !phone || cart.length===0) {
+   alert("Pakilagay ang pangalan, number at order.");
+   return;
+ }
+
+ let items = cart.map(c=>{
+   let item = menu.find(x=>x.id===c.id);
+   return {
+     name:item.name,
+     canteen:item.canteen,
+     price:item.price,
+     qty:c.qty
+   };
+ });
+
+ let total = items.reduce((sum,x)=>sum+x.price*x.qty,0);
+
+ let order = {
+   id:"ORD-"+Date.now(),
+   name:name,
+   phone:phone,
+   payment:document.getElementById("payment").value,
+   note:document.getElementById("custNote").value,
+   items:items,
+   total:total,
+   status:"Pending",
+   date:new Date().toLocaleString()
+ };
+
+ orders.unshift(order);
+ saveData();
+
+ cart=[];
+ updateCount();
+
+ showPage("success");
+}
+
+// ADMIN LOGIN
+function loginAdmin() {
+ if(document.getElementById("adminPin").value===ADMIN_PIN) {
+   isAdmin=true;
+   renderAdmin();
+ } else {
+   alert("Wrong PIN!");
+ }
+}
+
+function logoutAdmin() {
+ isAdmin=false;
+ document.getElementById("adminPin").value="";
+ renderAdmin();
+}
+
+function renderAdmin() {
+ document.getElementById("adminLogin").classList.toggle("hidden",isAdmin);
+ document.getElementById("adminDash").classList.toggle("hidden",!isAdmin);
+
+ if(isAdmin) adminTab("orders");
+}
+
+function adminTab(tab) {
+ document.getElementById("ordersAdmin").classList.toggle("hidden",tab!=="orders");
+ document.getElementById("manageAdmin").classList.toggle("hidden",tab!=="manage");
+
+ if(tab==="orders") renderOrders();
+ if(tab==="manage") renderManage();
+}
+
+// ADMIN ORDERS
+function renderOrders() {
+ let el = document.getElementById("ordersAdmin");
+
+ if(orders.length===0) {
+   el.innerHTML="<p>Wala pang orders.</p>";
+   return;
+ }
+
+ el.innerHTML = orders.map(o=>`
+  <div class="order">
+   <h3>${o.id}</h3>
+   <p><b>${o.name}</b></p>
+   <p>${o.phone}</p>
+   <p>Payment: ${o.payment}</p>
+   <p>Status: <span class="status">${o.status}</span></p>
+
+   ${o.items.map(i=>`
+    <p>${i.qty} × ${i.name} - ${peso(i.price*i.qty)}</p>
+   `).join("")}
+
+   <h3>${peso(o.total)}</h3>
+
+   ${o.status==="Pending"?
+   `<button onclick="setStatus('${o.id}','Confirmed')">Confirm Order</button>`:
+   `<button class="secondary" onclick="setStatus('${o.id}','Completed')">Completed</button>`}
+
+   <button class="danger" onclick="deleteOrder('${o.id}')">
+   Delete Order
+   </button>
+  </div>
+ `).join("");
+}
+
+function setStatus(id,status) {
+ let order = orders.find(x=>x.id===id);
+ if(order) {
+   order.status=status;
+   saveData();
+   renderOrders();
+ }
+}
+
+function deleteOrder(id) {
+ if(confirm("Delete this order permanently?")) {
+   orders=orders.filter(x=>x.id!==id);
+   saveData();
+   renderOrders();
+ }
+}
+
+// MANAGE MENU
+function renderManage() {
+ document.getElementById("manageAdmin").innerHTML = `
+  <h3>Add Food</h3>
+
+  <label>Food Name</label>
+  <input id="newName" placeholder="Food name">
+
+  <label>Price</label>
+  <input id="newPrice" type="number" placeholder="Price">
+
+  <label>Canteen</label>
+  <select id="newCanteen">
+   <option>Canteen 1</option>
+   <option>Canteen 2</option>
+  </select>
+
+  <button onclick="addFood()">Add Food</button>
+
+  <hr>
+
+  <h3>Current Menu</h3>
+
+  ${menu.map(x=>`
+   <div class="order">
+    <b>${x.name}</b> - ${peso(x.price)}
+    <p>${x.canteen} | ${x.available?"Available":"Sold Out"}</p>
+
+    <button onclick="editFood(${x.id})">Edit</button>
+    <button class="secondary" onclick="toggleFood(${x.id})">
+    ${x.available?"Sold Out":"Available"}
+    </button>
+    <button class="danger" onclick="deleteFood(${x.id})">Delete</button>
+   </div>
+  `).join("")}
+ `;
+}
+
+function addFood() {
+ let name = document.getElementById("newName").value.trim();
+ let price = Number(document.getElementById("newPrice").value);
+
+ if(!name || price<=0) {
+   alert("Enter valid food name and price.");
+   return;
+ }
+
+ menu.push({
+   id:Date.now(),
+   name:name,
+   price:price,
+   canteen:document.getElementById("newCanteen").value,
+   available:true,
+   emoji:"🍽️"
+ });
+
+ saveData();
+ renderManage();
+}
+
+function editFood(id) {
+ let item = menu.find(x=>x.id===id);
+ if(!item) return;
+
+ let name = prompt("Food name:",item.name);
+ if(name===null) return;
+
+ let price = Number(prompt("Price:",item.price));
+ if(!name.trim() || price<=0) return;
+
+ item.name=name.trim();
+ item.price=price;
+
+ saveData();
+ renderManage();
+}
+
+function toggleFood(id) {
+ let item = menu.find(x=>x.id===id);
+ item.available=!item.available;
+ saveData();
+ renderManage();
+}
+
+function deleteFood(id) {
+ if(confirm("Delete this food?")) {
+   menu=menu.filter(x=>x.id!==id);
+   saveData();
+   renderManage();
+ }
+}
+
+// START
+renderMenu();
+updateCount();
+
+</script>
+</body>
+</html>
